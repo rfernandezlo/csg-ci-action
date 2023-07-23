@@ -1,0 +1,32 @@
+name: 'CSG Action'
+description: 'Check if ManualSteps or Pre/Post Deployment files are present'
+author: 'CSG'
+inputs:
+  repo:
+    description: 'the target `owner/repo` to manage the check run on (defaults to the current repository'
+    required: false
+  sha:
+    description: 'the target commit''s SHA (defaults to the current commit)'
+    required: false
+  repo-token:
+    description: 'your GITHUB_TOKEN'
+    required: true
+  name:
+    description: 'the name of the check to create (incompatible with `check_id`)'
+    required: false
+  conclusion:
+    description: 'the conclusion of your check'
+    required: false
+  status:
+    description: 'the status of your check'
+    required: false
+    default: completed
+  output-title:
+    description: 'the output title of your check'
+    required: false
+  output-summary:
+    description: 'the output summary of your check'
+    required: false
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
