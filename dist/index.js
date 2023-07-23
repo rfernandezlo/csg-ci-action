@@ -9796,7 +9796,6 @@ const core = __nccwpck_require__(8864);
 const github = __nccwpck_require__(6366);
 const fs = __nccwpck_require__(7147);
 
-
 async function checkFileExists(filePath) {
     return fs.promises.access(filePath)
     .then(() => {
@@ -9829,22 +9828,25 @@ async function checkFileStartsWithHeader(filePath) {
 (
     async () => {
         try {
-            // get token for octokit
-            const token = core.getInput('repo-token');
-            const octokit = new github.getOctokit(token);
-            
+            const r_status = core.getInput('status');
+            const r_token = core.getInput('repo-token', { required: true });
+            const r_name = core.getInput('name');
+            const r_conclusion = core.getInput('conclusion');
+            const r_title = core.getInput('output-title');
+            const r_summary = core.getInput('output-summary');
+            const octokit = new github.getOctokit(r_token);
+            å
             // call octokit to create a check with annotation and details
-            const check = await octokit.rest.checks.create({
+            await octokit.rest.checks.create({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 name: core.getInput('name'),
                 head_sha: github.context.sha,
-                status: core.getInput('status'),
-                conclusion: core.getInput('conclusion'),
+                status: r_status,
+                conclusion: r_conclusion,
                 output: {
-                    title: core.getInput('output-title'),
-                    summary: core.getInput('output-summary'),
-                    
+                    title: r_title,
+                    summary: r_summary
                 }
             });
             
