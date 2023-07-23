@@ -9828,6 +9828,7 @@ async function checkFileStartsWithHeader(filePath) {
 (
     async () => {
         try {
+            core.debug(`Parsing inputs`);
             const r_status = core.getInput('status');
             const r_token = core.getInput('repo-token', { required: true });
             const r_name = core.getInput('name');
@@ -9835,12 +9836,12 @@ async function checkFileStartsWithHeader(filePath) {
             const r_title = core.getInput('output-title');
             const r_summary = core.getInput('output-summary');
             const octokit = new github.getOctokit(r_token);
-            å
-            // call octokit to create a check with annotation and details
+            core.debug(`Setting up OctoKit`);
+            core.debug(`Creating a new Run on ${r_status}/${r_name}@${r_token}`);
             await octokit.rest.checks.create({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
-                name: core.getInput('name'),
+                name: r_name,
                 head_sha: github.context.sha,
                 status: r_status,
                 conclusion: r_conclusion,
@@ -9849,7 +9850,7 @@ async function checkFileStartsWithHeader(filePath) {
                     summary: r_summary
                 }
             });
-            
+            core.debug(`Done`);
         } catch (error) {
             core.setFailed(error.message);
         }
