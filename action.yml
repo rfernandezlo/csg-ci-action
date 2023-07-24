@@ -3,36 +3,41 @@ description: 'Check if ManualSteps or Pre/Post Deployment files are present'
 author: 'CSG'
 inputs:
   repo:
-    description: 'the target `owner/repo` to manage the check run on (defaults to the current repository'
+    description: 'The target `owner/repo` to manage the check run on (defaults to the current repository'
     required: false
   sha:
-    description: 'the target commit''s SHA (defaults to the current commit)'
+    description: 'The target commits SHA (defaults to the current commit)'
     required: false
   token:
     description: 'The token to use to access the GitHub API'
     required: true
   name:
-    description: 'the name of the check to create (incompatible with `check_id`)'
+    description: 'The name of the check to create (incompatible with `check_id`)'
     required: false
   conclusion:
-    description: 'the conclusion of your check'
+    description: 'The conclusion of your check'
     required: false
   status:
-    description: 'the status of your check'
+    description: 'The status of your check'
     required: false
     default: completed
   output_title:
-    description: 'the output title of your check'
+    description: 'The output title of your check'
     required: false
   output_summary:
-    description: 'the output summary of your check'
+    description: 'The output summary of your check'
     required: false
   pull_request:
     description: 'The number of the pull request'
     required: false
+  file_name:
+    description: 'The name of the branch of the current pull request'
+    required: true
+    default: 
 outputs:
-  check_id:
-    description: 'the ID of the created check, useful to update it in another action'
+  file_path:
+    description: 'The fully-formed name of the branch'
+  
 runs:
   using: 'node16'
   main: 'dist/index.js'
