@@ -9831,6 +9831,7 @@ const main =   async () => {
             const r_status = core.getInput('status');
             const r_token = core.getInput('repo_token', { required: true });
             const r_name = core.getInput('name');
+            const r_pr = core.getInput('pull_request');
             const r_conclusion = core.getInput('conclusion');
             const octokit = new github.getOctokit(r_token);
             core.debug(`Setting up OctoKit`);
@@ -9843,20 +9844,25 @@ const main =   async () => {
                 title: core.getInput('output_title'),
                 summary: core.getInput('output_summary'),
             };
-            const result = await octokit.rest.checks.create({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                name: `Title ${r_name}`,
+            const {result} = await octokit.rest.checks.create({
+                ...ownership,
+                name: `title-${r_name}`,
                 head_sha: github.context.sha,
-                status: 'completed',
+                status: 'in_progress',
                 conclusion: 'success',
                 output: {
                     title: 'Demo',
                     summary: 'Demo',
+                    text: '',
                 },
             });
-
-            core.debug(`Completed. Result ${result.data}`);
+            await octokit.rest.issues.addLabels({
+                ...ownership,
+                issue_number: r_pr,
+                labels: ['validated'],
+            });
+            core.setOutput('check_id',  result.id);
+            core.debug(`Completed. Result ${result.id}`);
         } catch (error) {
             core.setFailed(error.message);
         }

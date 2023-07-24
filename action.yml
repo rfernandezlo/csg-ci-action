@@ -8,8 +8,8 @@ inputs:
   sha:
     description: 'the target commit''s SHA (defaults to the current commit)'
     required: false
-  repo_token:
-    description: 'your GITHUB_TOKEN'
+  token:
+    description: 'The token to use to access the GitHub API'
     required: true
   name:
     description: 'the name of the check to create (incompatible with `check_id`)'
@@ -27,6 +27,12 @@ inputs:
   output_summary:
     description: 'the output summary of your check'
     required: false
+  pull_request:
+    description: 'The number of the pull request'
+    required: false
+outputs:
+  check_id:
+    description: 'the ID of the created check, useful to update it in another action'
 runs:
   using: 'node16'
   main: 'dist/index.js'
