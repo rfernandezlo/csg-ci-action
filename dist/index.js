@@ -9844,12 +9844,16 @@ const main =   async () => {
                 summary: core.getInput('output_summary'),
             };
             await octokit.rest.checks.create({
-                ...ownership,
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
                 name: r_name,
                 head_sha: github.context.sha,
                 status: r_status,
                 conclusion: r_conclusion,
-                output: _output,
+                output: {
+                    title: core.getInput('output_title'),
+                    summary: core.getInput('output_summary'),
+                },
             });
             core.debug(`Done`);
         } catch (error) {
