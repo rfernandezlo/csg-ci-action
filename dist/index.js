@@ -9841,10 +9841,7 @@ const main =   async () => {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
             };
-            const _output = {
-                title: core.getInput('output_title'),
-                summary: core.getInput('output_summary'),
-            };
+            core.debug(`ownership  ${r_status}`);
             const result = await octokit.rest.checks.create({
                 ...ownership,
                 name: r_name,
@@ -9881,6 +9878,7 @@ const main =   async () => {
                         ]
                     }
                 });
+                core.debug(`check  ${check}`);
                 await octokit.rest.issues.addLabels({
                     ...ownership,
                     issue_number: r_pr,
