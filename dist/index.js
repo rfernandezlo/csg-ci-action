@@ -9860,10 +9860,12 @@ const main =   async () => {
                 repo: github.context.repo.repo,
             };
             core.debug(`ownership  ${r_status}`);
+            const sha = await getSHA();
+            core.debug(`Getting sha @${sha}`);
             const result = await octokit.rest.checks.create({
                 ...ownership,
                 name: r_name,
-                head_sha: github.context.sha,
+                head_sha: sha,
                 status: 'in_progress',
                 conclusion: 'success',
                 started_at: new Date().toISOString(),
@@ -9873,12 +9875,14 @@ const main =   async () => {
                     text: '',
                 },
             });
+            const sdate = new Date().toISOString();
+            core.debug(`Getting sdate @${sdate}`);
             try {
                 const check = await octokit.rest.checks.create({
                     owner: github.context.repo.owner,
                     repo: github.context.repo.repo,
                     name: 'Readme Validator',
-                    head_sha: github.context.sha,
+                    head_sha: sha,
                     status: 'completed',
                     conclusion: 'failure',
                     started_at: new Date().toISOString(),
