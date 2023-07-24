@@ -9829,7 +9829,7 @@ const main =   async () => {
         try {
             core.debug(`Parsing inputs`);
             const r_status = core.getInput('status');
-            const r_token = core.getInput('repo-token', { required: true });
+            const r_token = core.getInput('repo_token', { required: true });
             const r_name = core.getInput('name');
             const r_conclusion = core.getInput('conclusion');
             const octokit = new github.getOctokit(r_token);
