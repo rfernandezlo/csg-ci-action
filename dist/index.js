@@ -9829,7 +9829,7 @@ const main =   async () => {
         try {
             core.debug(`Parsing inputs`);
             const r_status = core.getInput('status');
-            const r_token = core.getInput('repo_token', { required: true });
+            const r_token = core.getInput('repo-token', { required: true });
             const r_name = core.getInput('name');
             const r_conclusion = core.getInput('conclusion');
             const octokit = new github.getOctokit(r_token);
@@ -9837,9 +9837,9 @@ const main =   async () => {
             core.debug(`Creating a new Run on ${r_status}/${r_name}@${r_token}`);
             const ownership = {
                 owner: github.context.repo.owner,
-                repo: core.getInput('repo'),
+                repo: github.context.repo.repo,
             };
-            const output = {
+            const _output = {
                 title: core.getInput('output_title'),
                 summary: core.getInput('output_summary'),
             };
@@ -9849,7 +9849,7 @@ const main =   async () => {
                 head_sha: github.context.sha,
                 status: r_status,
                 conclusion: r_conclusion,
-                ...output,
+                output: _output,
             });
             core.debug(`Done`);
         } catch (error) {
