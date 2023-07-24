@@ -9825,11 +9825,29 @@ async function checkFileStartsWithHeader(filePath) {
     });
 }
 
+ async function getSHA(inputSHA){
+    let sha = github.context.sha;
+    core.debug(`sha @${sha}`);
+    if (github.context.eventName == 'pull_request') {
+      const pull = github.context.payload.pull_request;
+      if (pull?.head.sha) {
+        sha = pull?.head.sha;
+      }
+    }
+    if (inputSHA) {
+      sha = inputSHA;
+    }
+    core.debug(`return sha @${sha}`);
+    return sha;
+
+ }
+  
 const main =   async () => {
         try {
+              
             core.debug(`Parsing inputs`);
             const r_status = core.getInput('status');
-            const r_token = core.getInput('token', { required: true });
+            const r_token = await getSHA(core.getInput('token', { required: true }));
             const r_name = core.getInput('name');
             const r_pr = core.getInput('pull_request');
             const r_conclusion = core.getInput('conclusion');
@@ -9848,6 +9866,7 @@ const main =   async () => {
                 head_sha: github.context.sha,
                 status: 'in_progress',
                 conclusion: 'success',
+                started_at: new Date().toISOString(),
                 output: {
                     title: 'Demo',
                     summary: 'Demo',
@@ -9862,6 +9881,7 @@ const main =   async () => {
                     head_sha: github.context.sha,
                     status: 'completed',
                     conclusion: 'failure',
+                    started_at: new Date().toISOString(),
                     output: {
                         title: 'README.md must start with a title',
                         summary: 'Please use markdown syntax to create a title',
