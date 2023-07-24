@@ -9843,11 +9843,11 @@ const main =   async () => {
                 title: core.getInput('output_title'),
                 summary: core.getInput('output_summary'),
             };
-            await octokit.rest.checks.create({
+            const result =await octokit.rest.checks.create({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 name: r_name,
-                head_sha: github.context.sha,
+                head_sha: github.context.pull_request.head.sha,
                 status: r_status,
                 conclusion: r_conclusion,
                 output: {
@@ -9856,6 +9856,7 @@ const main =   async () => {
                 },
             });
             core.debug(`Done`);
+            core.debug(`Result  ${result}`);
         } catch (error) {
             core.setFailed(error.message);
         }
