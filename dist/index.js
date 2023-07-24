@@ -9808,24 +9808,7 @@ async function checkFileExists(filePath) {
     });
 }
 
-async function checkFileStartsWithHeader(filePath) {
-    return fs.promises.readFile(filePath, 'utf8')
-    .then(fileContent => {
-
-        // remove all empty lines ad the beginning of the file
-        fileContent = fileContent.replace(/^\s*\n/gm, '');
-
-        if (fileContent.startsWith('#')) {
-            core.info(`File ${filePath} starts with a header`);
-            return true;
-        } else {
-            core.setFailed(`File ${filePath} does not start with a header`);
-            return false;
-        }
-    });
-}
-
- async function getSHA(inputSHA){
+async function getSHA(inputSHA){
     let sha = github.context.sha;
     core.debug(`sha @${sha}`);
     if (github.context.eventName == 'pull_request') {
@@ -9839,89 +9822,75 @@ async function checkFileStartsWithHeader(filePath) {
     }
     core.debug(`return sha @${sha}`);
     return sha;
+ }
 
+ async function changeLabels(ownership,pr){
+    try {
+        await octokit.rest.issues.addLabels({
+            ...ownership,
+            issue_number: pr,
+            labels: ['validated'],
+        });
+        await octokit.rest.issues.removeLabel({
+            ...ownership,
+            issue_number: pr,
+            name: 'validate'
+        });
+    } catch (e) {
+        core.warning(`failed to remove label: ${label}: ${e}`);
+    }
+    return sha;
  }
   
-const main =   async () => {
-        try {
-              
-            core.debug(`Parsing inputs`);
-            const r_status = core.getInput('status');
-            const r_token = await getSHA(core.getInput('token', { required: true }));
-            const r_name = core.getInput('name');
-            const r_pr = core.getInput('pull_request');
-            const r_conclusion = core.getInput('conclusion');
-            const octokit = new github.getOctokit(r_token);
-            const label = 'validate';
-            core.debug(`Setting up OctoKit`);
-            core.debug(`Creating a new Run on ${r_status}/${r_name}@${r_token}`);
-            const ownership = {
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-            };
-            core.debug(`ownership  ${r_status}`);
-            const sha = await getSHA();
-            core.debug(`Getting sha @${sha}`);
-            const result = await octokit.rest.checks.create({
-                ...ownership,
-                name: r_name,
-                head_sha: sha,
-                status: 'in_progress',
-                conclusion: 'success',
-                started_at: new Date().toISOString(),
-                output: {
-                    title: 'Demo',
-                    summary: 'Demo',
-                    text: '',
-                },
-            });
-            const sdate = new Date().toISOString();
-            core.debug(`Getting sdate @${sdate}`);
-            try {
-                const check = await octokit.rest.checks.create({
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo,
-                    name: 'Readme Validator',
-                    head_sha: sha,
-                    status: 'completed',
-                    conclusion: 'failure',
-                    started_at: new Date().toISOString(),
-                    output: {
-                        title: 'README.md must start with a title',
-                        summary: 'Please use markdown syntax to create a title',
-                        annotations: [
-                            {
-                                path: 'README.md',
-                                start_line: 1,
-                                end_line: 1,
-                                annotation_level: 'failure',
-                                message: 'README.md must start with a header',
-                                start_column: 1,
-                                end_column: 1
-                            }
-                        ]
-                    }
-                });
-                core.debug(`check  ${check}`);
-                await octokit.rest.issues.addLabels({
-                    ...ownership,
-                    issue_number: r_pr,
-                    labels: ['validated'],
-                });
-                await octokit.rest.issues.removeLabel({
-                    ...ownership,
-                    issue_number: r_pr,
-                    name: label
-                });
-            } catch (e) {
-                core.warning(`failed to remove label: ${label}: ${e}`);
-            }
-            core.setOutput('check_id',  result?.id);
-            core.debug(`Completed. Result ${result?.id}`);
-        } catch (error) {
-            core.setFailed(error.message);
+const main = async () => {
+    try {
+
+        core.debug(`Branch Name ${github.ref_name}`);
+        const pathFile = 'manifest/' + github.ref_name + core.getInput('file_name');
+        core.debug(`Path File inputs ${pathFile}`);
+
+        if (await checkFileExists(pathFile)){
+            core.setOutput('file_path',  pathFile);
         }
+
+        // --pre-destructive-changes    destructiveChangesPre.xml
+        // --post-destructive-changes   destructiveChangesPost.xml
+
+        core.debug(`Parsing inputs`);
+        const r_status  = core.getInput('status', {required: false});
+        const r_token   = await getSHA(core.getInput('token', { required: true }));
+        const r_name    = core.getInput('name', {required: false});
+        const r_pr      = core.getInput('pull_request', {required: false});
+        const r_conclusion = core.getInput('conclusion', {required: false});
+        const octokit   = new github.getOctokit(r_token);
+
+        core.debug(`Creating a new Run on ${r_status}/${r_name}@${r_token}`);
+        const ownership = {
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+        };
+        core.debug(`ownership  ${r_status}`);
+        const sha = await getSHA();
+        core.debug(`Getting sha @${sha}`);
+        const result = await octokit.rest.checks.create({
+            ...ownership,
+            name: r_name,
+            head_sha: sha,
+            status: r_status,
+            conclusion: r_conclusion,
+            started_at: new Date().toISOString(),
+            output: {
+                title: 'Demo',
+                summary: 'Demo',
+                text: '',
+            },
+        });
+        await changeLabels(ownership,r_pr);
+        core.debug(`Completed. Result ${result?.id}`);
+    } catch (error) {
+        core.setFailed(error.message);
     }
+}
 
 main();
 })();
