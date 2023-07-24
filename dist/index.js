@@ -9858,6 +9858,29 @@ const main =   async () => {
                 },
             });
             try {
+                const check = await octokit.rest.checks.create({
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
+                    name: 'Readme Validator',
+                    head_sha: github.context.sha,
+                    status: 'completed',
+                    conclusion: 'failure',
+                    output: {
+                        title: 'README.md must start with a title',
+                        summary: 'Please use markdown syntax to create a title',
+                        annotations: [
+                            {
+                                path: 'README.md',
+                                start_line: 1,
+                                end_line: 1,
+                                annotation_level: 'failure',
+                                message: 'README.md must start with a header',
+                                start_column: 1,
+                                end_column: 1
+                            }
+                        ]
+                    }
+                });
                 await octokit.rest.issues.addLabels({
                     ...ownership,
                     issue_number: r_pr,
