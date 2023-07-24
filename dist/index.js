@@ -9847,7 +9847,7 @@ const main =   async () => {
             };
             const result = await octokit.rest.checks.create({
                 ...ownership,
-                name: `title-${r_name}`,
+                name: r_name,
                 head_sha: github.context.sha,
                 status: 'in_progress',
                 conclusion: 'success',
@@ -9857,13 +9857,13 @@ const main =   async () => {
                     text: '',
                 },
             });
-            await octokit.rest.issues.addLabels({
-                ...ownership,
-                issue_number: r_pr,
-                labels: ['validated'],
-            });
             try {
-                await client.issues.removeLabel({
+                await octokit.rest.issues.addLabels({
+                    ...ownership,
+                    issue_number: r_pr,
+                    labels: ['validated'],
+                });
+                await octokit.rest.issues.removeLabel({
                     ...ownership,
                     issue_number: r_pr,
                     name: label
