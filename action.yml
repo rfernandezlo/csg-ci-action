@@ -8,7 +8,7 @@ inputs:
   sha:
     description: 'the target commit''s SHA (defaults to the current commit)'
     required: false
-  repo-token:
+  repo_token:
     description: 'your GITHUB_TOKEN'
     required: true
   name:
@@ -21,10 +21,10 @@ inputs:
     description: 'the status of your check'
     required: false
     default: completed
-  output-title:
+  output_title:
     description: 'the output title of your check'
     required: false
-  output-summary:
+  output_summary:
     description: 'the output summary of your check'
     required: false
 runs:
