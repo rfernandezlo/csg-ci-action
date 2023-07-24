@@ -9834,6 +9834,7 @@ const main =   async () => {
             const r_pr = core.getInput('pull_request');
             const r_conclusion = core.getInput('conclusion');
             const octokit = new github.getOctokit(r_token);
+            const label = 'validate';
             core.debug(`Setting up OctoKit`);
             core.debug(`Creating a new Run on ${r_status}/${r_name}@${r_token}`);
             const ownership = {
@@ -9844,7 +9845,7 @@ const main =   async () => {
                 title: core.getInput('output_title'),
                 summary: core.getInput('output_summary'),
             };
-            const {result} = await octokit.rest.checks.create({
+            const result = await octokit.rest.checks.create({
                 ...ownership,
                 name: `title-${r_name}`,
                 head_sha: github.context.sha,
@@ -9861,8 +9862,17 @@ const main =   async () => {
                 issue_number: r_pr,
                 labels: ['validated'],
             });
-            core.setOutput('check_id',  result.id);
-            core.debug(`Completed. Result ${result.id}`);
+            try {
+                await client.issues.removeLabel({
+                    ...ownership,
+                    issue_number: r_pr,
+                    name: label
+                });
+            } catch (e) {
+                core.warning(`failed to remove label: ${label}: ${e}`);
+            }
+            core.setOutput('check_id',  result?.id);
+            core.debug(`Completed. Result ${result?.id}`);
         } catch (error) {
             core.setFailed(error.message);
         }
