@@ -9840,65 +9840,60 @@ async function changeLabels(octokit,ownership,pr){
         core.warning(`failed removing/adding labels: ${e}`);
     }
 }
-  
 
 async function splitStr(str, separator) {
-    
     return str.split(separator)
 }
 
 const main = async () => {
     try {
 
-        let sourcebranch = core.getInput('source_branch');
-        let branch = await splitStr(sourcebranch,'/');
- 
-        core.debug(`branch split ${branch}`);
-
-        let filename = core.getInput('file_name');
-        const pathFile = `manifest/${branch[1]}/${filename}`;
-        core.debug(`Path File inputs ${pathFile}`);
-
-        if (await checkFileExists(pathFile)){
-            core.setOutput('file_path',  pathFile);
-        }
-
-        // --pre-destructive-changes    destructiveChangesPre.xml
-        // --post-destructive-changes   destructiveChangesPost.xml
-
-        core.debug(`Parsing inputs`);
-        const r_status  = core.getInput('status', {required: false});
-        const r_token   = await getSHA(core.getInput('token', { required: true }));
-        const r_name    = core.getInput('name', {required: false});
-        const r_pr      = core.getInput('pull_request', {required: false});
-        const r_conclusion = core.getInput('conclusion', {required: false});
-        const r_title = core.getInput('output-title', {required: false});
-        const r_summary = core.getInput('output-summary', {required: false});
+        
+        let filename = core.getInput('file_name', { required: true });
+        const r_token = await getSHA(core.getInput('token', { required: true }));
         const octokit   = new github.getOctokit(r_token);
-
-        core.debug(`Creating a new Run on ${r_status}/${r_name}@${r_token}`);
         const ownership = {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
         };
-        core.debug(`ownership  ${r_status}`);
-        const sha = await getSHA();
-        core.debug(`Getting sha @${sha}`);
-        const result = await octokit.rest.checks.create({
-            ...ownership,
-            name: r_name,
-            head_sha: sha,
-            status: r_status,
-            conclusion: r_conclusion,
-            started_at: new Date().toISOString(),
-            output: {
-                title: r_title,
-                summary: r_summary,
-                text: '',
-            },
-        });
-        await changeLabels(octokit,ownership,r_pr);
-        core.debug(`Completed. Result ${result?.id}`);
+
+        if(sourcebranch){
+            let sourcebranch = core.getInput('source_branch', { required: false });
+            let branch = await splitStr(sourcebranch,'/');
+            const pathFile = `manifest/${branch[1]}/${filename}`;
+            core.debug(`Path File inputs ${pathFile}`);
+            if (await checkFileExists(pathFile)){
+                core.setOutput('file_path',  pathFile);
+            }
+            
+            const r_status  = core.getInput('status', {required: false});
+            const r_name    = core.getInput('name', {required: false});
+            const r_conclusion = core.getInput('conclusion', {required: false});
+            const r_title = core.getInput('output-title', {required: false});
+            const r_summary = core.getInput('output-summary', {required: false});
+            
+            core.debug(`ownership  ${r_status}`);
+            const sha = await getSHA();
+            core.debug(`Getting sha @${sha}`);
+            const result = await octokit.rest.checks.create({
+                ...ownership,
+                name: r_name,
+                head_sha: sha,
+                status: r_status,
+                conclusion: r_conclusion,
+                started_at: new Date().toISOString(),
+                output: {
+                    title: r_title,
+                    summary: r_summary,
+                    text: '',
+                },
+            });
+            core.debug(`Completed. Result ${result?.id}`);
+        } else {
+            const r_pr = core.getInput('pull_request', {required: false});
+            await changeLabels(octokit,ownership,r_pr);
+        }
+        
     } catch (error) {
         core.setFailed(error.message);
     }
