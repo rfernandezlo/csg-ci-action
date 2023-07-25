@@ -9857,7 +9857,7 @@ const main = async () => {
             repo: github.context.repo.repo,
         };
 
-        if(sourcebranch){
+        if(filename != 'none'){
             let sourcebranch = core.getInput('source_branch', { required: false });
             let branch = await splitStr(sourcebranch,'/');
             const pathFile = `manifest/${branch[1]}/${filename}`;
