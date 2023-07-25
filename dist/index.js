@@ -9837,7 +9837,7 @@ async function getSHA(inputSHA){
             name: 'validate'
         });
     } catch (e) {
-        core.warning(`failed to remove label: ${label}: ${e}`);
+        core.warning(`failed removing/adding labels: ${e}`);
     }
     return sha;
  }
@@ -9845,8 +9845,13 @@ async function getSHA(inputSHA){
 const main = async () => {
     try {
 
-        core.debug(`Branch Name ${github.ref_name}`);
-        const pathFile = 'manifest/' + github.ref_name + core.getInput('file_name');
+        core.debug(`branch name ${github.context.ref}`);
+        let branch = splitStr(github.context.ref,'/');
+ 
+        core.debug(`branch split ${branch}`);
+
+        let filename = core.getInput('file_name');
+        const pathFile = `manifest/${branch[3]}/${filename}`;
         core.debug(`Path File inputs ${pathFile}`);
 
         if (await checkFileExists(pathFile)){
@@ -9862,6 +9867,8 @@ const main = async () => {
         const r_name    = core.getInput('name', {required: false});
         const r_pr      = core.getInput('pull_request', {required: false});
         const r_conclusion = core.getInput('conclusion', {required: false});
+        const r_title = core.getInput('output-title', {required: false});
+        const r_summary = core.getInput('output-summary', {required: false});
         const octokit   = new github.getOctokit(r_token);
 
         core.debug(`Creating a new Run on ${r_status}/${r_name}@${r_token}`);
@@ -9880,8 +9887,8 @@ const main = async () => {
             conclusion: r_conclusion,
             started_at: new Date().toISOString(),
             output: {
-                title: 'Demo',
-                summary: 'Demo',
+                title: r_title,
+                summary: r_summary,
                 text: '',
             },
         });
