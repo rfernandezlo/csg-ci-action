@@ -9839,7 +9839,6 @@ async function changeLabels(octokit,ownership,pr){
     } catch (e) {
         core.warning(`failed removing/adding labels: ${e}`);
     }
-    return sha;
 }
   
 
