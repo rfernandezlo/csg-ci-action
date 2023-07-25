@@ -9824,7 +9824,7 @@ async function getSHA(inputSHA){
     return sha;
 }
 
-async function changeLabels(ownership,pr){
+async function changeLabels(octokit,ownership,pr){
     try {
         await octokit.rest.issues.addLabels({
             ...ownership,
@@ -9898,7 +9898,7 @@ const main = async () => {
                 text: '',
             },
         });
-        await changeLabels(ownership,r_pr);
+        await changeLabels(octokit,ownership,r_pr);
         core.debug(`Completed. Result ${result?.id}`);
     } catch (error) {
         core.setFailed(error.message);
