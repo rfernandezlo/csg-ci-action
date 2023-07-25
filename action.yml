@@ -30,10 +30,13 @@ inputs:
   pull_request:
     description: 'The number of the pull request'
     required: false
+  source_branch:
+    description: 'The source branch name'
+    required: false
   file_name:
     description: 'The name of the branch of the current pull request'
     required: true
-    default: 
+    default: 'destructiveChangesPre.xml'
 outputs:
   file_path:
     description: 'The fully-formed name of the branch'

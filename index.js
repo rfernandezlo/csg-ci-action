@@ -28,9 +28,9 @@ async function getSHA(inputSHA){
     }
     core.debug(`return sha @${sha}`);
     return sha;
- }
+}
 
- async function changeLabels(ownership,pr){
+async function changeLabels(ownership,pr){
     try {
         await octokit.rest.issues.addLabels({
             ...ownership,
@@ -43,21 +43,27 @@ async function getSHA(inputSHA){
             name: 'validate'
         });
     } catch (e) {
-        core.warning(`failed to remove label: ${label}: ${e}`);
+        core.warning(`failed removing/adding labels: ${e}`);
     }
     return sha;
- }
+}
   
+
+async function splitStr(str, separator) {
+    
+    return str.split(separator)
+}
+
 const main = async () => {
     try {
 
-        core.debug(`Branch Name ${github.context.ref}`);
-        let branch = splitStr(github.context.ref,'/');
+        let sourcebranch = core.getInput('source_branch');
+        let branch = await splitStr(sourcebranch,'/');
  
-        core.debug(`Branch Name ${branch}`);
+        core.debug(`branch split ${branch}`);
 
-        let filename = core.getInput("file_name");
-        const pathFile = `manifest/${branch[3]}/${filename}`;
+        let filename = core.getInput('file_name');
+        const pathFile = `manifest/${branch[1]}/${filename}`;
         core.debug(`Path File inputs ${pathFile}`);
 
         if (await checkFileExists(pathFile)){
