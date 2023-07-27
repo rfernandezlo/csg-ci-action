@@ -37,6 +37,9 @@ inputs:
     description: 'The name of the branch of the current pull request'
     required: true
     default: 'destructiveChangesPre.xml'
+  label:
+    description: 'The new label to add to the current pull request'
+    required: false
 outputs:
   file_path:
     description: 'The fully-formed name of the branch'

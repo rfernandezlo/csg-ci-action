@@ -9826,11 +9826,7 @@ async function getSHA(inputSHA){
 
 async function changeLabels(octokit,ownership,pr){
     try {
-        await octokit.rest.issues.addLabels({
-            ...ownership,
-            issue_number: pr,
-            labels: ['validated'],
-        });
+        await addLabel(octokit,ownership,pr,'validated');
         await octokit.rest.issues.removeLabel({
             ...ownership,
             issue_number: pr,
@@ -9838,6 +9834,18 @@ async function changeLabels(octokit,ownership,pr){
         });
     } catch (e) {
         core.warning(`failed removing/adding labels: ${e}`);
+    }
+}
+
+async function addLabel(octokit,ownership,pr,label){
+    try {
+        await octokit.rest.issues.addLabels({
+            ...ownership,
+            issue_number: pr,
+            labels: [label],
+        });
+    } catch (e) {
+        core.warning(`failed adding labels: ${e}`);
     }
 }
 
@@ -9859,8 +9867,7 @@ const main = async () => {
 
         if(filename != 'none'){
             let sourcebranch = core.getInput('source_branch', { required: false });
-            let branch = await splitStr(sourcebranch,'/');
-            const pathFile = `manifest/${branch[1]}/${filename}`;
+            const pathFile = `manifest/${sourcebranch}/${filename}`;
             core.debug(`Path File inputs ${pathFile}`);
             if (await checkFileExists(pathFile)){
                 core.setOutput('file_path',  pathFile);
@@ -9891,7 +9898,12 @@ const main = async () => {
             core.debug(`Completed. Result ${result?.id}`);
         } else {
             const r_pr = core.getInput('pull_request', {required: false});
-            await changeLabels(octokit,ownership,r_pr);
+            if (filename != 'none'){
+                await changeLabels(octokit,ownership,r_pr);
+            }else{
+                const r_label  = core.getInput('label', {required: false});
+                await addLabel(octokit,ownership,r_pr,r_label);
+            }
         }
         
     } catch (error) {
