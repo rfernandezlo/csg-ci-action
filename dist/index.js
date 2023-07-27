@@ -9878,8 +9878,6 @@ const main = async () => {
             const r_conclusion = core.getInput('conclusion', {required: false});
             const r_title = core.getInput('output-title', {required: false});
             const r_summary = core.getInput('output-summary', {required: false});
-            
-            core.debug(`ownership  ${r_status}`);
             const sha = await getSHA();
             core.debug(`Getting sha @${sha}`);
             const result = await octokit.rest.checks.create({
@@ -9898,7 +9896,7 @@ const main = async () => {
             core.debug(`Completed. Result ${result?.id}`);
         } else {
             const r_pr = core.getInput('pull_request', {required: false});
-            if (filename != 'none'){
+            if (filename == 'none'){
                 await changeLabels(octokit,ownership,r_pr);
             }else{
                 const r_label  = core.getInput('label', {required: false});
