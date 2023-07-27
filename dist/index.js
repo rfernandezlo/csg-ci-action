@@ -9865,7 +9865,7 @@ const main = async () => {
             repo: github.context.repo.repo,
         };
 
-        if(filename != 'none'){
+        if(filename != 'none' && filename != 'new'){
             let sourcebranch = core.getInput('source_branch', { required: false });
             const pathFile = `manifest/${sourcebranch}/${filename}`;
             core.debug(`Path File inputs ${pathFile}`);
