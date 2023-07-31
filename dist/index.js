@@ -1,6 +1,78 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 4006:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const github = __nccwpck_require__ (6366);
+const core = __nccwpck_require__ (8864);
+const ownership = {
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+        };
+
+module.exports = {
+
+    toggleLabels: async function (token,pr,labelAdd,labelDel){
+        try {
+            await addLabel(token,pr,labelAdd);
+            await removeLabel(token,pr,labelDel);
+        } catch (e) {
+            core.warning(`failed removing/adding labels: ${e}`);
+        }
+    },
+    
+    removeLabel: async function (token,pr,label){
+        try {
+            const octokit = new github.getOctokit(token);
+            await octokit.rest.issues.removeLabel({
+                ...ownership,
+                issue_number: pr,
+                name: label
+            });
+        } catch (e) {
+            core.warning(`failed removing/adding labels: ${e}`);
+        }
+    },
+    
+    addLabel: async function (token,pr,label){
+        try {
+            const octokit = new github.getOctokit(token);
+            await octokit.rest.issues.addLabels({
+                ...ownership,
+                issue_number: pr,
+                labels: [label],
+            });
+        } catch (e) {
+            core.warning(`failed adding labels: ${e}`);
+        }
+    },
+
+    addCheck: async function (token,r_name,r_status,r_conclusion,r_title,r_summary){
+        const octokit = new github.getOctokit(token);
+        const {
+            data: { id }
+        } = await octokit.rest.checks.create({
+            ...ownership,
+            name: r_name,
+            head_sha: token,
+            status: r_status,
+            conclusion: r_conclusion,
+            started_at: new Date().toISOString(),
+            output: {
+                title: r_title,
+                summary: r_summary,
+                text: '',
+            },
+        });
+        return id;
+    }
+
+};
+
+
+/***/ }),
+
 /***/ 9165:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -9789,129 +9861,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const core = __nccwpck_require__(8864);
-const github = __nccwpck_require__(6366);
-const fs = __nccwpck_require__(7147);
-
-async function checkFileExists(filePath) {
-    return fs.promises.access(filePath)
-    .then(() => {
-        core.info(`File ${filePath} exists`);
-        return true;
-    })
-    .catch(() => {
-        core.setFailed(`File ${filePath} is mandatory`);
-        return false;
-    });
-}
-
-async function getSHA(inputSHA){
-    let sha = github.context.sha;
-    core.debug(`sha @${sha}`);
-    if (github.context.eventName == 'pull_request') {
-      const pull = github.context.payload.pull_request;
-      if (pull?.head.sha) {
-        sha = pull?.head.sha;
-      }
-    }
-    if (inputSHA) {
-      sha = inputSHA;
-    }
-    core.debug(`return sha @${sha}`);
-    return sha;
-}
-
-async function changeLabels(octokit,ownership,pr){
-    try {
-        await addLabel(octokit,ownership,pr,'validated');
-        await octokit.rest.issues.removeLabel({
-            ...ownership,
-            issue_number: pr,
-            name: 'validate'
-        });
-    } catch (e) {
-        core.warning(`failed removing/adding labels: ${e}`);
-    }
-}
-
-async function addLabel(octokit,ownership,pr,label){
-    try {
-        await octokit.rest.issues.addLabels({
-            ...ownership,
-            issue_number: pr,
-            labels: [label],
-        });
-    } catch (e) {
-        core.warning(`failed adding labels: ${e}`);
-    }
-}
-
-async function splitStr(str, separator) {
-    return str.split(separator)
-}
-
-const main = async () => {
-    try {
-
-        
-        let filename = core.getInput('file_name', { required: true });
-        const r_token = await getSHA(core.getInput('token', { required: true }));
-        const octokit   = new github.getOctokit(r_token);
-        const ownership = {
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-        };
-
-        if(filename != 'none' && filename != 'new'){
-            let sourcebranch = core.getInput('source_branch', { required: false });
-            const pathFile = `manifest/${sourcebranch}/${filename}`;
-            core.debug(`Path File inputs ${pathFile}`);
-            if (await checkFileExists(pathFile)){
-                core.setOutput('file_path',  pathFile);
-            }
-            
-            const r_status  = core.getInput('status', {required: false});
-            const r_name    = core.getInput('name', {required: false});
-            const r_conclusion = core.getInput('conclusion', {required: false});
-            const r_title = core.getInput('output-title', {required: false});
-            const r_summary = core.getInput('output-summary', {required: false});
-            const sha = await getSHA();
-            core.debug(`Getting sha @${sha}`);
-            const result = await octokit.rest.checks.create({
-                ...ownership,
-                name: r_name,
-                head_sha: sha,
-                status: r_status,
-                conclusion: r_conclusion,
-                started_at: new Date().toISOString(),
-                output: {
-                    title: r_title,
-                    summary: r_summary,
-                    text: '',
-                },
-            });
-            core.debug(`Completed. Result ${result?.id}`);
-        } else {
-            const r_pr = core.getInput('pull_request', {required: false});
-            if (filename == 'none'){
-                await changeLabels(octokit,ownership,r_pr);
-            }else{
-                const r_label  = core.getInput('label', {required: false});
-                await addLabel(octokit,ownership,r_pr,r_label);
-            }
-        }
-        
-    } catch (error) {
-        core.setFailed(error.message);
-    }
-}
-
-main();
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(4006);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

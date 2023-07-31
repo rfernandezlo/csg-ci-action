@@ -40,6 +40,9 @@ inputs:
   label:
     description: 'The new label to add to the current pull request'
     required: false
+  label_del:
+    description: 'The label to toggle in the current pull request'
+    required: false
 outputs:
   file_path:
     description: 'The fully-formed name of the branch'
