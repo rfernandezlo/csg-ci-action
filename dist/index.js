@@ -2854,7 +2854,6 @@ const main = async () => {
         let sourcebranch = core.getInput('source_branch', { required: false });
         const pathFile = `manifest/${sourcebranch}/${filename}`;
         core.debug(`Path File inputs ${pathFile}`);
-        const result = labels.addCheck
         if (await checkFileExists(pathFile)){
             core.setOutput('file_path',  pathFile);
         }else {
